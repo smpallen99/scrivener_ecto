@@ -349,5 +349,101 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.entries == Enum.drop(posts, 4)
       assert page.total_pages == 2
     end
+
+    test "can paginate page 1 from the bottom" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page: 1, options: [from_bottom: true])
+
+      assert page.page_size == 5
+      assert page.page_number == 1
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 1
+      assert page.entries == posts |> Enum.take(1)
+    end
+
+    test "can paginate last page from the bottom" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page: 2, page_size: 4, options: [from_bottom: true])
+
+      assert page.page_size == 4
+      assert page.page_number == 2
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 4
+      assert page.entries == posts |> Enum.drop(2)
+    end
+
+    test "can paginate 2nd last page from the bottom" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page: 2, page_size: 2, options: [from_bottom: true])
+
+      assert page.page_size == 2
+      assert page.page_number == 2
+      assert page.total_entries == 6
+      assert page.total_pages == 3
+      assert page.entries |> length == 2
+      assert page.entries == posts |> Enum.drop(2) |> Enum.take(2)
+    end
+
+    test "gets last page for option row 0" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page_size: 4, options: [row: 0, from_bottom: true])
+
+      assert page.page_size == 4
+      assert page.page_number == 2
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 4
+      assert page.entries == posts |> Enum.drop(2)
+    end
+
+    test "gets first page for option row 1" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page_size: 4, options: [row: 1, from_bottom: true])
+
+      assert page.page_size == 4
+      assert page.page_number == 1
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 2
+      assert page.entries == posts |> Enum.take(2)
+    end
+
+    test "gets first page for option row 2" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page_size: 4, options: [row: 3, from_bottom: true])
+
+      assert page.page_size == 4
+      assert page.page_number == 2
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 4
+      assert page.entries == posts |> Enum.drop(2)
+    end
   end
 end
