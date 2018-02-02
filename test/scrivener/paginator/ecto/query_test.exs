@@ -445,5 +445,35 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.entries |> length == 4
       assert page.entries == posts |> Enum.drop(2)
     end
+
+    test "gets a page with same number entries as page size" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page_size: 6, options: [from_bottom: true])
+
+      assert page.page_number == 1
+      assert page.total_entries == 6
+      assert page.total_pages == 1
+      assert page.entries |> length == 6
+      assert page.entries == posts
+    end
+
+    test "gets a page with half the number entries as page size" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> Scrivener.Ecto.Repo.paginate(page_size: 3, options: [row: 0, from_bottom: true])
+
+      assert page.page_number == 2
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+      assert page.entries |> length == 3
+      assert page.entries == Enum.drop(posts, 3)
+    end
   end
 end

@@ -110,6 +110,10 @@ defimpl Scrivener.Paginater, for: Ecto.Query do
     |> min(opts.total_pages)
   end
 
+  defp page_size(true, 1, page_size, page_size) do
+    page_size
+  end
+
   defp page_size(true, 1, total_entries, page_size) do
     rem(total_entries, page_size)
   end
