@@ -61,30 +61,46 @@ page =
 
 ## Installation
 
-Add `scrivener_ecto` to your `mix.exs` `applications` and `dependencies`.
-
-```elixir
-def application do
-  [applications: [:scrivener_ecto]]
-end
-```
+Add `scrivener_ecto` to your `mix.exs` dependencies. Mix starts dependency
+applications automatically.
 
 ```elixir
 [{:scrivener_ecto, "~> 1.0"}]
 ```
 
-## Contributing
+## Development on Elixir 1.20
 
-First, you'll need to build the test database.
+This fork selects Elixir `1.20.4-otp-29` and Erlang `29.1.2` with asdf's
+`.tool-versions`. It uses Ecto 3.14 and retains the custom `from_bottom`, `row`,
+and explicit-config `page_number: :last` pagination options.
 
-```elixir
-MIX_ENV=test mix db.reset
+Tests use PostgreSQL through Postgrex 0.22. With PostgreSQL running locally,
+create and migrate the dedicated test database, then run the suite:
+
+```sh
+mix deps.get
+MIX_ENV=test mix ecto.create
+MIX_ENV=test mix ecto.migrate
+mix test --warnings-as-errors
 ```
 
-This task assumes you have postgres installed and that your current user can create / drop databases. If you'd prefer to use a different user, you can specify it with the environment variable `SCRIVENER_ECTO_DB_USER`.
+The default database is `scrivener_test`. Set `SCRIVENER_ECTO_DB_USER` to use a
+different user from your OS account, and `SCRIVENER_ECTO_DB_PASSWORD` when a
+password is required. The existing `mix db.reset` alias drops the test database;
+normal setup only requires create/migrate.
 
-With the database built, you can now run the tests.
+Additional checks:
 
-```elixir
-mix test
+```sh
+mix test --cover
+mix compile --force --warnings-as-errors
+MIX_ENV=test mix compile --force --warnings-as-errors
+MIX_ENV=prod mix compile --force --warnings-as-errors
+mix dialyzer
+mix docs --warnings-as-errors
+mix format --check-formatted
 ```
+
+The grouped-count query matches Ecto's `ByExpr` group expressions. Tests cover
+joined and compound groups, ordinary pages, bottom pagination, row lookup,
+explicit last-page selection, and empty results.

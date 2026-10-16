@@ -34,7 +34,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
     Enum.map(1..10, fn i ->
       %KeyValue{
         key: "key_#{i}",
-        value: rem(i, 2) |> to_string
+        value: rem(i, 2) |> to_string()
       }
       |> Scrivener.Ecto.Repo.insert!()
     end)
@@ -362,7 +362,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 1
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 1
+      assert page.entries |> length() == 1
       assert page.entries == posts |> Enum.take(1)
     end
 
@@ -378,7 +378,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 2
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 4
+      assert page.entries |> length() == 4
       assert page.entries == posts |> Enum.drop(2)
     end
 
@@ -394,7 +394,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 2
       assert page.total_entries == 6
       assert page.total_pages == 3
-      assert page.entries |> length == 2
+      assert page.entries |> length() == 2
       assert page.entries == posts |> Enum.drop(2) |> Enum.take(2)
     end
 
@@ -410,7 +410,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 2
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 4
+      assert page.entries |> length() == 4
       assert page.entries == posts |> Enum.drop(2)
     end
 
@@ -426,7 +426,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 1
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 2
+      assert page.entries |> length() == 2
       assert page.entries == posts |> Enum.take(2)
     end
 
@@ -442,7 +442,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 2
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 4
+      assert page.entries |> length() == 4
       assert page.entries == posts |> Enum.drop(2)
     end
 
@@ -457,7 +457,7 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 1
       assert page.total_entries == 6
       assert page.total_pages == 1
-      assert page.entries |> length == 6
+      assert page.entries |> length() == 6
       assert page.entries == posts
     end
 
@@ -472,8 +472,69 @@ defmodule Scrivener.Paginator.Ecto.QueryTest do
       assert page.page_number == 2
       assert page.total_entries == 6
       assert page.total_pages == 2
-      assert page.entries |> length == 3
+      assert page.entries |> length() == 3
       assert page.entries == Enum.drop(posts, 3)
+    end
+
+    test "paginates unpublished posts" do
+      create_posts()
+      page = Post |> Post.unpublished() |> Scrivener.Ecto.Repo.paginate()
+
+      assert page.total_entries == 1
+      assert [%Post{published: false}] = page.entries
+    end
+
+    test "selects the last page through an explicit config" do
+      posts = create_posts()
+
+      config = %Scrivener.Config{
+        module: Scrivener.Ecto.Repo,
+        caller: self(),
+        page_number: :last,
+        page_size: 4,
+        options: []
+      }
+
+      page = Post |> Post.published() |> order_by(:id) |> Scrivener.paginate(config)
+
+      assert page.page_number == 2
+      assert page.entries == Enum.drop(posts, 4)
+    end
+
+    test "selects a row counting from the top" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> order_by(:id)
+        |> Scrivener.Ecto.Repo.paginate(page_size: 3, options: [row: 4])
+
+      assert page.page_number == 2
+      assert page.entries == Enum.drop(posts, 3)
+    end
+
+    test "bottom pagination keeps a full first page for exact page-size multiples" do
+      posts = create_posts()
+
+      page =
+        Post
+        |> Post.published()
+        |> order_by(:id)
+        |> Scrivener.Ecto.Repo.paginate(page: 1, page_size: 3, options: [from_bottom: true])
+
+      assert page.page_number == 1
+      assert page.total_pages == 2
+      assert page.entries == Enum.take(posts, 3)
+    end
+
+    test "bottom pagination handles an empty query" do
+      page = Post |> Scrivener.Ecto.Repo.paginate(options: [from_bottom: true])
+
+      assert page.entries == []
+      assert page.total_entries == 0
+      assert page.total_pages == 1
+      assert page.page_number == 1
     end
   end
 end
