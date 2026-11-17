@@ -4,8 +4,8 @@ defmodule Scrivener.Ecto.Mixfile do
   def project do
     [
       app: :scrivener_ecto,
-      version: "1.6.1",
-      elixir: "~> 1.11",
+      version: "1.7.0",
+      elixir: "~> 1.20",
       elixirc_paths: elixirc_paths(Mix.env()),
       package: package(),
       description: "Paginate your Ecto queries with Scrivener",
@@ -39,12 +39,11 @@ defmodule Scrivener.Ecto.Mixfile do
   defp deps do
     [
       {:scrivener, "~> 2.7"},
-      {:ecto, "~> 3.3"},
-      {:ecto_sql, "~> 3.3", only: :test},
-      {:dialyxir, "~> 1.0", only: :dev},
-      {:earmark, ">= 0.0.0", only: :dev},
-      {:ex_doc, "~> 0.23", only: :dev},
-      {:postgrex, "~> 0.15.0", only: :test}
+      {:ecto, "~> 3.14"},
+      {:ecto_sql, "~> 3.14", only: :test},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:postgrex, "~> 0.22", only: :test}
     ]
   end
 

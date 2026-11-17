@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :scrivener_ecto, ecto_repos: [Scrivener.Ecto.Repo]
 
@@ -9,4 +9,4 @@ config :scrivener_ecto, Scrivener.Ecto.Repo,
   username: System.get_env("SCRIVENER_ECTO_DB_USER") || System.get_env("USER"),
   password: System.get_env("SCRIVENER_ECTO_DB_PASSWORD") || System.get_env("PASSWORD")
 
-config :logger, :console, level: :error
+config :logger, :default_handler, level: :error
